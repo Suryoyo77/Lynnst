@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%230a0a0a'/%3E%3Ctext x='3.2' y='13' fill='%23ddd' font-family='monospace' font-size='12'%3EL%3C/text%3E%3C/svg%3E" />
+    <title>Lynnst</title>
+    <link rel="preload" href="lynnst.wasm" as="fetch" type="application/wasm" crossorigin />
+    <link rel="preload" href="catalog/index.bin" as="fetch" crossorigin />
+    
+    
+    <style>
+      html {
+        --z: 1;
+        --bg: #0a0a0a;
+        --fg: #ddd;
+        font-size: calc(16px * var(--z));
+      }
+      html,
+      body,
+      #app {
+        margin: 0;
+        padding: 0;
+        background: var(--bg);
+        color: var(--fg);
+        height: 100%;
+        overflow: hidden;
+        touch-action: pan-x pan-y;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      #app {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+      }
+      .shell,
+      .pane,
+      h1.chrome,
+      .hd,
+      details.n,
+      details.n > summary,
+      details.n > summary::before {
+        background: var(--bg);
+      }
+      .shell {
+        height: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        padding: 0 1rem 0.875rem;
+      }
+      .pane {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      ::-webkit-scrollbar {
+        display: none;
+        width: 0;
+        height: 0;
+      }
+      h1.chrome {
+        flex: 0 0 auto;
+        z-index: 4;
+        font-size: 1.2rem;
+        line-height: 1.2;
+        margin: 0;
+        padding: 0.875rem 0 0.75rem;
+        letter-spacing: 0.03em;
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+      .hd {
+        position: sticky;
+        top: 0;
+        z-index: 3;
+        height: 1.5rem;
+      }
+      details.n > summary {
+        position: sticky;
+        top: calc(1.5rem - 0.125rem);
+        z-index: 1;
+        width: max-content;
+        min-width: 100%;
+      }
+      details.n > summary::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: -0.25em;
+        height: 0.25em;
+      }
+      h1.chrome .sub {
+        font-size: 1rem;
+      }
+      .go {
+        cursor: pointer;
+      }
+      .err {
+        color: #c44;
+        padding: 0.5rem;
+        margin-bottom: 0.625rem;
+      }
+      .list,
+      .list ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: minmax(22rem, 1fr) repeat(5, 8rem);
+        min-width: 62rem;
+        align-items: start;
+        padding: 0.125rem 0.35rem;
+        min-height: 1.5rem;
+        box-sizing: border-box;
+        background: var(--bg);
+        -webkit-touch-callout: none;
+      }
+      .list .row {
+        min-height: 1.5em;
+        padding-top: 0.25em;
+        padding-bottom: 0.25em;
+      }
+      .row > :nth-child(n + 2) {
+        white-space: nowrap;
+        min-width: 0;
+      }
+      .k {
+        grid-column: 2;
+      }
+      .st {
+        grid-column: 3;
+      }
+      .po {
+        grid-column: 4;
+      }
+      .pr {
+        grid-column: 5;
+      }
+      .dt {
+        grid-column: 6;
+      }
+      .hd,
+      .list {
+        font-size: 0.92rem;
+        font-weight: 600;
+      }
+      .list ul {
+        font-size: 90%;
+        font-weight: 400;
+      }
+      .list ul ul ul ul ul {
+        font-size: 100%;
+      }
+      .idx {
+        cursor: pointer;
+      }
+      .list .row.hl {
+        box-shadow: inset 0 0 0 1px #4a4a4a;
+      }
+      .list li.row.hl {
+        position: relative;
+        z-index: 2;
+      }
+      details.n:has(> summary > .row.hl) > summary {
+        z-index: 2;
+      }
+      .tb {
+        display: flex;
+        align-items: flex-start;
+        min-width: 0;
+        padding-right: 0.5rem;
+        box-sizing: border-box;
+        white-space: nowrap;
+      }
+      .i1 {
+        padding-left: 0.9rem;
+      }
+      .i2 {
+        padding-left: 1.8rem;
+      }
+      .i3 {
+        padding-left: 2.7rem;
+      }
+      .i4 {
+        padding-left: 3.6rem;
+      }
+      .title {
+        flex: 1 1 auto;
+        min-width: 2rem;
+        line-height: 1.35;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+      }
+      .gs {
+        flex: 0 0 0.9rem;
+        width: 0.9rem;
+        height: 1.2em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
+      }
+      .pos {
+        color: #4a4;
+      }
+      .neg {
+        color: #c44;
+      }
+      .wip {
+        color: #48c;
+      }
+      details.n {
+        padding: 0;
+        margin: 0;
+        border: 0;
+        box-sizing: border-box;
+      }
+      summary {
+        cursor: pointer;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        list-style: none;
+        display: block;
+      }
+      summary::-webkit-details-marker {
+        display: none;
+      }
+      summary::marker {
+        content: none;
+      }
+      .glyph::before {
+        content: "";
+        display: inline-block;
+        border-top: 0.32rem solid transparent;
+        border-bottom: 0.32rem solid transparent;
+        border-left: 0.46rem solid var(--fg);
+        transition: none;
+      }
+      details[open] > summary .glyph::before {
+        border-left: 0.32rem solid transparent;
+        border-right: 0.32rem solid transparent;
+        border-top: 0.46rem solid var(--fg);
+        border-bottom: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div class="shell">
+        <h1 class="chrome"><span class="go">Lynnst</span></h1>
+        <div class="pane"><div>Loading…</div></div>
+      </div>
+    </div>
+    <script type="module">
+      const dec = new TextDecoder();
+      const app = document.getElementById("app");
+      const root = document.documentElement;
+      let z = 1,
+        z0 = 1,
+        d0 = 0;
+      let holdT = 0,
+        holdEl = null,
+        holdX = 0,
+        holdY = 0,
+        holdOn = false,
+        hlEl = null;
+      function holdRow(t) {
+        if (!t) return null;
+        if (t.nodeType !== 1) t = t.parentElement;
+        const r = t && t.closest ? t.closest(".row") : null;
+        if (!r || r.classList.contains("hd")) return null;
+        return r;
+      }
+      function holdStop() {
+        if (holdT) {
+          clearTimeout(holdT);
+          holdT = 0;
+        }
+        holdEl = null;
+      }
+      let hlSticky = false;
+      let ptrRow = null;
+      function hlClear() {
+        if (hlEl && hlEl.isConnected) hlEl.classList.remove("hl");
+        hlEl = null;
+        hlSticky = false;
+      }
+      function hlAssign(row, sticky) {
+        if (!row) {
+          hlClear();
+          return;
+        }
+        if (hlEl && hlEl.isConnected && hlEl !== row) hlEl.classList.remove("hl");
+        row.classList.add("hl");
+        hlEl = row;
+        hlSticky = sticky;
+      }
+      function hlHold(row) {
+        if (!row) return;
+        if (hlSticky && hlEl === row) {
+          if (ptrRow === row) hlAssign(row, false);
+          else hlClear();
+          return;
+        }
+        hlAssign(row, true);
+      }
+      function zmin() {
+        return Math.min(1, (app.clientWidth || 1) / (64 * 16));
+      }
+      function setz(n, cx, cy) {
+        const m = zmin();
+        const nz = n < m ? m : n > 3 ? 3 : n;
+        const pane = app.querySelector(".pane");
+        const k = nz / z;
+        let sx = 0,
+          sy = 0,
+          px = 0,
+          py = 0;
+        if (pane && cx != null) {
+          const r = pane.getBoundingClientRect();
+          sx = pane.scrollLeft;
+          sy = pane.scrollTop;
+          px = cx - r.left;
+          py = cy - r.top;
+        }
+        z = nz;
+        root.style.setProperty("--z", String(z));
+        if (pane && cx != null && k !== 1) {
+          const r = pane.getBoundingClientRect();
+          pane.scrollLeft = (sx + px) * k - (cx - r.left);
+          pane.scrollTop = (sy + py) * k - (cy - r.top);
+        }
+      }
+      app.addEventListener(
+        "touchstart",
+        (e) => {
+          if (e.touches.length !== 2) return;
+          const a = e.touches[0],
+            b = e.touches[1];
+          d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          z0 = z;
+        },
+        { passive: true }
+      );
+      app.addEventListener(
+        "touchmove",
+        (e) => {
+          if (e.touches.length !== 2 || d0 < 8) return;
+          e.preventDefault();
+          const a = e.touches[0],
+            b = e.touches[1];
+          const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          setz(
+            z0 * (d / d0),
+            (a.clientX + b.clientX) / 2,
+            (a.clientY + b.clientY) / 2
+          );
+        },
+        { passive: false }
+      );
+      app.addEventListener(
+        "wheel",
+        (e) => {
+          if (!e.ctrlKey) return;
+          e.preventDefault();
+          setz(z * (e.deltaY > 0 ? 0.92 : 1.09), e.clientX, e.clientY);
+        },
+        { passive: false }
+      );
+      app.addEventListener(
+        "touchstart",
+        (e) => {
+          if (e.touches.length !== 1) {
+            holdStop();
+            return;
+          }
+          const row = holdRow(e.target);
+          if (!row) {
+            holdStop();
+            return;
+          }
+          holdOn = false;
+          holdEl = row;
+          holdX = e.touches[0].clientX;
+          holdY = e.touches[0].clientY;
+          holdT = setTimeout(() => {
+            holdT = 0;
+            if (!holdEl) return;
+            holdOn = true;
+            hlHold(holdEl);
+          }, 450);
+        },
+        { passive: true }
+      );
+      app.addEventListener(
+        "touchmove",
+        (e) => {
+          if (!holdT || e.touches.length !== 1) return;
+          const t = e.touches[0];
+          const dx = t.clientX - holdX;
+          const dy = t.clientY - holdY;
+          if (dx * dx + dy * dy > 64) holdStop();
+        },
+        { passive: true }
+      );
+      app.addEventListener("touchend", holdStop, { passive: true });
+      app.addEventListener(
+        "touchcancel",
+        () => {
+          holdStop();
+          holdOn = false;
+        },
+        { passive: true }
+      );
+      app.addEventListener("contextmenu", (e) => {
+        if (holdOn || holdT) e.preventDefault();
+      });
+      app.addEventListener(
+        "click",
+        (e) => {
+          if (!holdOn) return;
+          holdOn = false;
+          e.preventDefault();
+          e.stopPropagation();
+        },
+        true
+      );
+      app.addEventListener("pointerover", (e) => {
+        if (e.pointerType === "touch") return;
+        ptrRow = holdRow(e.target);
+        if (!ptrRow) return;
+        if (hlSticky && hlEl === ptrRow) return;
+        hlAssign(ptrRow, false);
+      });
+      app.addEventListener("pointerout", (e) => {
+        if (e.pointerType === "touch") return;
+        const next = holdRow(e.relatedTarget);
+        if (holdRow(e.target) !== next) ptrRow = next;
+        if (!hlSticky && !ptrRow) hlClear();
+      });
+      function showErr(msg) {
+        app.innerHTML =
+          '<div class="shell"><h1 class="chrome"><span class="go">Lynnst</span></h1>' +
+          '<div class="pane"><div class="err">Error: ' +
+          msg +
+          "</div></div></div>";
+      }
+      try {
+        const wr = await fetch(new URL("lynnst.wasm", document.baseURI));
+        if (!wr.ok) throw new Error("wasm missing (lynnst.wasm next to index.html)");
+        const buf = await wr.arrayBuffer();
+        let inst;
+        let ac;
+        const imports = {
+          env: {
+            host_cancel: () => {
+              if (ac) ac.abort();
+            },
+            host_fetch: (urlPtr, urlLen, tag, gen) => {
+              if (ac) ac.abort();
+              ac = new AbortController();
+              const { signal } = ac;
+              const mem = new Uint8Array(inst.exports.memory.buffer);
+              const url = dec.decode(mem.subarray(urlPtr, urlPtr + urlLen));
+              fetch(url, { signal })
+                .then((r) => {
+                  if (!r.ok) {
+                    inst.exports.on_http(r.status, gen);
+                    return;
+                  }
+                  return r.arrayBuffer();
+                })
+                .then((ab) => {
+                  if (ab === undefined) return;
+                  const n = ab.byteLength;
+                  const p = inst.exports.alloc_buf(n);
+                  if (p === 0) {
+                    inst.exports.on_oom(gen);
+                    return;
+                  }
+                  const mem2 = new Uint8Array(inst.exports.memory.buffer);
+                  mem2.set(new Uint8Array(ab), p);
+                  inst.exports.on_bytes(p, n, tag, gen);
+                })
+                .catch((e) => {
+                  if (e && e.name === "AbortError") return;
+                  inst.exports.on_net(gen);
+                });
+            },
+            host_set_html: (ptr, len) => {
+              const mem = new Uint8Array(inst.exports.memory.buffer);
+              app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
+            },
+          },
+        };
+        inst = (await WebAssembly.instantiate(buf, imports)).instance;
+        app.addEventListener("click", (e) => {
+          const t = e.target.closest("[data-act]");
+          if (!t) return;
+          const act = t.getAttribute("data-act");
+          if (act === "home") inst.exports.click_home();
+          else if (act === "open")
+            inst.exports.click_open(Number(t.getAttribute("data-i")));
+        });
+        inst.exports.start();
+      } catch (e) {
+        showErr(String(e && e.message ? e.message : e));
+      }
+    </script>
+  </body>
+</html>
