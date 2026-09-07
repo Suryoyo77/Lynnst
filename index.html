@@ -121,7 +121,7 @@
       .row {
         display: grid;
         grid-template-columns: minmax(22rem, 1fr) repeat(5, 8rem);
-        min-width: 62rem;
+        min-width: 62.7rem;
         align-items: start;
         padding: 0.125rem 0.35rem;
         min-height: 1.5rem;
@@ -169,10 +169,17 @@
         cursor: pointer;
       }
       .list .row.hl {
-        box-shadow: inset 0 0 0 1px #4a4a4a;
+        position: relative;
+      }
+      .list .row.hl::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border: 1px solid #4a4a4a;
+        pointer-events: none;
+        box-sizing: border-box;
       }
       .list li.row.hl {
-        position: relative;
         z-index: 2;
       }
       details.n:has(> summary > .row.hl) > summary {
@@ -320,7 +327,7 @@
         hlAssign(row, true);
       }
       function zmin() {
-        return Math.min(1, (app.clientWidth || 1) / (64 * 16));
+        return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
       }
       function setz(n, cx, cy) {
         const m = zmin();
