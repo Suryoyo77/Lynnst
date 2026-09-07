@@ -7,8 +7,8 @@
     <title>Lynnst</title>
     <link rel="preload" href="lynnst.wasm" as="fetch" type="application/wasm" crossorigin />
     <link rel="preload" href="catalog/index.bin" as="fetch" crossorigin />
-    
-    
+    <link data-trunk rel="copy-file" href="../target/wasm32-unknown-unknown/release/lynnst.wasm" />
+    <link data-trunk rel="copy-dir" href="../catalog" />
     <style>
       html {
         --z: 1;
@@ -418,7 +418,17 @@
         },
         { passive: true }
       );
-      app.addEventListener("touchend", holdStop, { passive: true });
+      app.addEventListener(
+        "touchend",
+        (e) => {
+          if (holdOn) {
+            e.preventDefault();
+            holdOn = false;
+          }
+          holdStop();
+        },
+        { passive: false }
+      );
       app.addEventListener(
         "touchcancel",
         () => {
@@ -430,16 +440,6 @@
       app.addEventListener("contextmenu", (e) => {
         if (holdOn || holdT) e.preventDefault();
       });
-      app.addEventListener(
-        "click",
-        (e) => {
-          if (!holdOn) return;
-          holdOn = false;
-          e.preventDefault();
-          e.stopPropagation();
-        },
-        true
-      );
       app.addEventListener("pointerover", (e) => {
         if (e.pointerType === "touch") return;
         ptrRow = holdRow(e.target);
