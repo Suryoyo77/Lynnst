@@ -26,8 +26,6 @@
         height: 100%;
         overflow: hidden;
         touch-action: pan-x pan-y;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
       }
       #app {
         position: fixed;
@@ -40,8 +38,7 @@
       h1.chrome,
       .hd,
       details.n,
-      details.n > summary,
-      details.n > summary::before {
+      details.n > summary {
         background: var(--bg);
       }
       .shell {
@@ -85,26 +82,23 @@
         top: 0;
         z-index: 3;
         height: 1.5rem;
+        box-shadow: 0 1px 0 var(--bg);
       }
       details.n > summary {
-        position: sticky;
-        top: calc(1.5rem - 0.125rem);
+        position: relative;
         z-index: 1;
         width: max-content;
         min-width: 100%;
       }
-      details.n > summary::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: -0.25em;
-        height: 0.25em;
+      details.n[open]:not(:has(> ul > li > details.n[open])) > summary {
+        position: sticky;
+        top: calc(1.5rem + 1px);
       }
       h1.chrome .sub {
         font-size: 1rem;
       }
-      .go {
+      [data-act],
+      [data-i] {
         cursor: pointer;
       }
       .err {
@@ -117,6 +111,9 @@
         list-style: none;
         padding: 0;
         margin: 0;
+      }
+      .list {
+        margin-top: 1px;
       }
       .row {
         display: grid;
@@ -165,25 +162,9 @@
       .list ul ul ul ul ul {
         font-size: 100%;
       }
-      .idx {
-        cursor: pointer;
-      }
       .list .row.hl {
-        position: relative;
-      }
-      .list .row.hl::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border: 1px solid #4a4a4a;
-        pointer-events: none;
-        box-sizing: border-box;
-      }
-      .list li.row.hl {
-        z-index: 2;
-      }
-      details.n:has(> summary > .row.hl) > summary {
-        z-index: 2;
+        outline: 1px solid #4a4a4a;
+        outline-offset: -1px;
       }
       .tb {
         display: flex;
@@ -205,12 +186,55 @@
       .i4 {
         padding-left: 3.6rem;
       }
-      .title {
+      .list .tb > :last-child {
         flex: 1 1 auto;
         min-width: 2rem;
         line-height: 1.35;
         word-wrap: break-word;
         white-space: pre-wrap;
+      }
+      .hd [data-act="sort-date"] {
+        display: inline-flex;
+        align-items: center;
+      }
+      .hd .tb {
+        align-items: center;
+      }
+      .sg {
+        display: inline-flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 0.55rem;
+        height: 0.7rem;
+        margin-left: 0.35rem;
+        flex: 0 0 auto;
+      }
+      .sg::before,
+      .sg::after {
+        content: "";
+        display: block;
+        border-left: 0.22rem solid transparent;
+        border-right: 0.22rem solid transparent;
+      }
+      .sg::before {
+        border-bottom: 0.2rem solid #888;
+        margin-bottom: 0.08rem;
+      }
+      .sg::after {
+        border-top: 0.2rem solid #888;
+      }
+      .sd::before {
+        border-bottom-color: transparent;
+      }
+      .sd::after {
+        border-top-color: var(--fg);
+      }
+      .su::before {
+        border-bottom-color: var(--fg);
+      }
+      .su::after {
+        border-top-color: transparent;
       }
       .gs {
         flex: 0 0 0.9rem;
@@ -229,6 +253,21 @@
       }
       .wip {
         color: #48c;
+      }
+      .st.neg::after {
+        content: "Not Started";
+      }
+      .st.wip::after {
+        content: "In Progress";
+      }
+      .st.pos::after {
+        content: "Completed";
+      }
+      .po.pos::after {
+        content: "Present";
+      }
+      .po.neg::after {
+        content: "Missing";
       }
       details.n {
         padding: 0;
@@ -256,7 +295,6 @@
         border-top: 0.32rem solid transparent;
         border-bottom: 0.32rem solid transparent;
         border-left: 0.46rem solid var(--fg);
-        transition: none;
       }
       details[open] > summary .glyph::before {
         border-left: 0.32rem solid transparent;
@@ -269,7 +307,7 @@
   <body>
     <div id="app">
       <div class="shell">
-        <h1 class="chrome"><span class="go">Lynnst</span></h1>
+        <h1 class="chrome"><span data-act="home">Lynnst</span></h1>
         <div class="pane"><div>Loading…</div></div>
       </div>
     </div>
@@ -356,11 +394,34 @@
       app.addEventListener(
         "touchstart",
         (e) => {
-          if (e.touches.length !== 2) return;
-          const a = e.touches[0],
-            b = e.touches[1];
-          d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-          z0 = z;
+          const n = e.touches.length;
+          if (n === 2) {
+            holdStop();
+            const a = e.touches[0],
+              b = e.touches[1];
+            d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+            z0 = z;
+            return;
+          }
+          if (n !== 1) {
+            holdStop();
+            return;
+          }
+          const row = holdRow(e.target);
+          if (!row) {
+            holdStop();
+            return;
+          }
+          holdOn = false;
+          holdEl = row;
+          holdX = e.touches[0].clientX;
+          holdY = e.touches[0].clientY;
+          holdT = setTimeout(() => {
+            holdT = 0;
+            if (!holdEl) return;
+            holdOn = true;
+            hlHold(holdEl);
+          }, 400);
         },
         { passive: true }
       );
@@ -388,31 +449,6 @@
           setz(z * (e.deltaY > 0 ? 0.92 : 1.09), e.clientX, e.clientY);
         },
         { passive: false }
-      );
-      app.addEventListener(
-        "touchstart",
-        (e) => {
-          if (e.touches.length !== 1) {
-            holdStop();
-            return;
-          }
-          const row = holdRow(e.target);
-          if (!row) {
-            holdStop();
-            return;
-          }
-          holdOn = false;
-          holdEl = row;
-          holdX = e.touches[0].clientX;
-          holdY = e.touches[0].clientY;
-          holdT = setTimeout(() => {
-            holdT = 0;
-            if (!holdEl) return;
-            holdOn = true;
-            hlHold(holdEl);
-          }, 450);
-        },
-        { passive: true }
       );
       app.addEventListener(
         "touchmove",
@@ -462,7 +498,7 @@
       });
       function showErr(msg) {
         app.innerHTML =
-          '<div class="shell"><h1 class="chrome"><span class="go">Lynnst</span></h1>' +
+          '<div class="shell"><h1 class="chrome"><span data-act="home">Lynnst</span></h1>' +
           '<div class="pane"><div class="err">Error: ' +
           msg +
           "</div></div></div>";
@@ -513,16 +549,47 @@
               const mem = new Uint8Array(inst.exports.memory.buffer);
               app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
             },
+            host_sort_apply: (ptr, n, titleMark, dateMark) => {
+              const list = app.querySelector("ul.list");
+              if (list && n && n === list.children.length) {
+                const mem = new Uint32Array(inst.exports.memory.buffer, ptr, n);
+                const byOrig = new Array(n);
+                for (const el of list.children) {
+                  const a = el.getAttribute("data-i");
+                  byOrig[a != null ? a : el.getAttribute("data-o")] = el;
+                }
+                const frag = document.createDocumentFragment();
+                for (let i = 0; i < n; i++) {
+                  const el = byOrig[mem[i]];
+                  if (el) frag.appendChild(el);
+                }
+                list.appendChild(frag);
+              }
+              const t = app.querySelector("[data-act=sort-title] .sg");
+              const d = app.querySelector("[data-act=sort-date] .sg");
+              if (t) {
+                t.classList.toggle("sd", titleMark === 1);
+                t.classList.toggle("su", titleMark === 2);
+              }
+              if (d) {
+                d.classList.toggle("sd", dateMark === 1);
+                d.classList.toggle("su", dateMark === 2);
+              }
+            },
           },
         };
         inst = (await WebAssembly.instantiate(buf, imports)).instance;
         app.addEventListener("click", (e) => {
-          const t = e.target.closest("[data-act]");
-          if (!t) return;
-          const act = t.getAttribute("data-act");
-          if (act === "home") inst.exports.click_home();
-          else if (act === "open")
-            inst.exports.click_open(Number(t.getAttribute("data-i")));
+          const act = e.target.closest("[data-act]");
+          if (act) {
+            const a = act.getAttribute("data-act");
+            if (a === "home") inst.exports.click_home();
+            else if (a === "sort-title") inst.exports.click_sort(0);
+            else if (a === "sort-date") inst.exports.click_sort(1);
+            return;
+          }
+          const t = e.target.closest("[data-i]");
+          if (t) inst.exports.click_open(Number(t.getAttribute("data-i")));
         });
         inst.exports.start();
       } catch (e) {
