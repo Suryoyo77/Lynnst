@@ -90,9 +90,10 @@
         width: max-content;
         min-width: 100%;
       }
-      details.n[open]:not(:has(> ul > li > details.n[open])) > summary {
+      details.n[open] > summary {
         position: sticky;
-        top: calc(1.5rem + 1px);
+        top: 1.5rem;
+        box-shadow: 0 1px 0 var(--bg);
       }
       h1.chrome .sub {
         font-size: 1rem;
@@ -113,7 +114,7 @@
         margin: 0;
       }
       .list {
-        margin-top: 1px;
+        margin-top: 0;
       }
       .row {
         display: grid;
@@ -364,6 +365,31 @@
         }
         hlAssign(row, true);
       }
+      function stickStack() {
+        const pane = app.querySelector(".pane");
+        if (!pane) return;
+        const hd = pane.querySelector(".hd");
+        const base = hd ? hd.offsetHeight : 0;
+        function walk(ul, top) {
+          if (!ul) return;
+          const kids = ul.children;
+          let i = 0;
+          while (i < kids.length) {
+            const d = kids[i].firstElementChild;
+            if (d && d.tagName === "DETAILS" && d.classList.contains("n")) {
+              const sum = d.firstElementChild;
+              if (d.open) {
+                if (sum) sum.style.top = top + "px";
+                walk(d.lastElementChild, top + (sum ? sum.offsetHeight : 0));
+              } else if (sum) {
+                sum.style.top = "";
+              }
+            }
+            i += 1;
+          }
+        }
+        walk(pane.querySelector("ul.list"), base);
+      }
       function zmin() {
         return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
       }
@@ -390,6 +416,7 @@
           pane.scrollLeft = (sx + px) * k - (cx - r.left);
           pane.scrollTop = (sy + py) * k - (cy - r.top);
         }
+        stickStack();
       }
       app.addEventListener(
         "touchstart",
@@ -483,6 +510,13 @@
       app.addEventListener("contextmenu", (e) => {
         if (holdOn || holdT) e.preventDefault();
       });
+      app.addEventListener(
+        "toggle",
+        (e) => {
+          if (e.target.classList && e.target.classList.contains("n")) stickStack();
+        },
+        true
+      );
       app.addEventListener("pointerover", (e) => {
         if (e.pointerType === "touch") return;
         ptrRow = holdRow(e.target);
@@ -548,6 +582,7 @@
             host_set_html: (ptr, len) => {
               const mem = new Uint8Array(inst.exports.memory.buffer);
               app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
+              stickStack();
             },
             host_sort_apply: (ptr, n, titleMark, dateMark) => {
               const list = app.querySelector("ul.list");
