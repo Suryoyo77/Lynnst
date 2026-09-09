@@ -10,316 +10,270 @@
     <link data-trunk rel="copy-file" href="../target/wasm32-unknown-unknown/release/lynnst.wasm" />
     <link data-trunk rel="copy-dir" href="../catalog" />
     <style>
-    html {
-      --z: 1;
-      --bg: #0a0a0a;
-      --fg: #ddd;
-      font-size: calc(16px * var(--z));
-    }
-      html,
-      body,
-      #app {
-        margin: 0;
-        padding: 0;
-        background: var(--bg);
-        color: var(--fg);
-        height: 100%;
-        overflow: hidden;
-        touch-action: pan-x pan-y;
-      }
-      #app {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-      }
-      .shell,
-      .pane,
-      h1.chrome,
-      .hd,
-      details.n > summary {
-        background: var(--bg);
-      }
-      .shell {
-        height: 100%;
-        width: 100%;
-        box-sizing: border-box;
-        display: flex;
-        flex-direction: column;
-        font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        padding: 0 1rem 0.875rem;
-      }
-      .pane {
-        flex: 1 1 auto;
-        min-height: 0;
-        overflow: auto;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        -ms-overflow-style: none;
-      }
-      ::-webkit-scrollbar {
-        display: none;
-        width: 0;
-        height: 0;
-      }
-      h1.chrome {
-        flex: 0 0 auto;
-        z-index: 4;
-        font-size: 1.2rem;
-        line-height: 1.2;
-        margin: 0;
-        padding: 0.875rem 0 0.75rem;
-        letter-spacing: 0.03em;
-        min-width: 0;
-        max-width: 100%;
-        overflow: hidden;
-        white-space: nowrap;
-      }
-      .hd {
-        position: sticky;
-        top: 0;
-        z-index: 8;
-        height: 1.5rem;
-        box-shadow: inset 0 -1px 0 var(--bg);
-      }
-      details.n > summary {
-        position: relative;
-        z-index: 1;
-        width: 100%;
-        min-width: 62.7rem;
-        background: var(--bg);
-      }
-      details.n[open] > summary {
-        position: sticky;
-        top: 1.5rem;
-        z-index: 6;
-      }
-      details.n[open] details.n[open] > summary {
-        z-index: 5;
-      }
-      details.n[open] details.n[open] details.n[open] > summary {
-        z-index: 4;
-      }
-      details.n[open] details.n[open] details.n[open] details.n[open] > summary {
-        z-index: 3;
-      }
-      h1.chrome .sub {
-        font-size: 1rem;
-      }
-      [data-act],
-      [data-i] {
-        cursor: pointer;
-      }
-      .err {
-        color: #c44;
-        padding: 0.5rem;
-        margin-bottom: 0.625rem;
-      }
-      .list,
-      .list ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .list {
-        margin-top: 0;
-      }
-      .row {
-        display: grid;
-        grid-template-columns: minmax(22rem, 1fr) repeat(5, 8rem);
-        min-width: 62.7rem;
-        align-items: start;
-        padding: 0.125rem 0.35rem;
-        min-height: 1.5rem;
-        box-sizing: border-box;
-        background: var(--bg);
-        -webkit-touch-callout: none;
-      }
-      .list .row {
-        min-height: 1.5em;
-        padding-top: 0.25em;
-        padding-bottom: 0.25em;
-      }
-      .row > :nth-child(n + 2) {
-        white-space: nowrap;
-        min-width: 0;
-      }
-      .row > * {
-        padding-left: 0.25rem;
-        box-sizing: border-box;
-      }
-      .k {
-        grid-column: 2;
-      }
-      .st {
-        grid-column: 3;
-      }
-      .po {
-        grid-column: 4;
-      }
-      .pr {
-        grid-column: 5;
-      }
-      .dt {
-        grid-column: 6;
-      }
-      .hd,
-      .list {
-        font-size: 0.9375rem;
-        font-weight: 600;
-      }
-      .list ul {
-        font-size: 90%;
-        font-weight: 400;
-      }
-      .list ul ul ul ul ul {
-        font-size: 100%;
-      }
-      .list .row.hl {
-        outline: 1px solid #4a4a4a;
-        outline-offset: -1px;
-      }
-      .tb {
-        display: flex;
-        align-items: flex-start;
-        min-width: 0;
-        padding-right: 0.5rem;
-        box-sizing: border-box;
-        white-space: nowrap;
-      }
-      .i1 {
-        padding-left: 0.9rem;
-      }
-      .i2 {
-        padding-left: 1.8rem;
-      }
-      .i3 {
-        padding-left: 2.7rem;
-      }
-      .i4 {
-        padding-left: 3.6rem;
-      }
-      .list .tb > :last-child {
-        flex: 1 1 auto;
-        min-width: 2rem;
-        line-height: 1.3333;
-        word-wrap: break-word;
-        white-space: pre-wrap;
-      }
-      @media (max-width: 52rem) {
-        .list .tb > :last-child {
-          white-space: nowrap;
+        /* All dimensions in integer pixels */
+        html, body, #app {
+          margin: 0;
+          padding: 0;
+          background: #0a0a0a;
+          color: #ddd;
+          height: 100%;
           overflow: hidden;
-          text-overflow: ellipsis;
+          touch-action: pan-x pan-y;
         }
-      }
-      .hd [data-act="sort-date"] {
-        display: inline-flex;
-        align-items: center;
-      }
-      .hd .tb {
-        align-items: center;
-      }
-      .sg {
-        display: inline-flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        width: 0.55rem;
-        height: 0.7rem;
-        margin-left: 0.35rem;
-        flex: 0 0 auto;
-      }
-      .sg::before,
-      .sg::after {
-        content: "";
-        display: block;
-        border-left: 0.22rem solid transparent;
-        border-right: 0.22rem solid transparent;
-      }
-      .sg::before {
-        border-bottom: 0.2rem solid #888;
-        margin-bottom: 0.08rem;
-      }
-      .sg::after {
-        border-top: 0.2rem solid #888;
-      }
-      .sd::before {
-        border-bottom-color: transparent;
-      }
-      .sd::after {
-        border-top-color: var(--fg);
-      }
-      .su::before {
-        border-bottom-color: var(--fg);
-      }
-      .su::after {
-        border-top-color: transparent;
-      }
-      .gs {
-        flex: 0 0 0.9rem;
-        width: 0.9rem;
-        height: 1.2em;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        line-height: 1;
-      }
-      .pos {
-        color: #4a4;
-      }
-      .neg {
-        color: #c44;
-      }
-      .wip {
-        color: #48c;
-      }
-      .st.neg::after {
-        content: "Not Started";
-      }
-      .st.wip::after {
-        content: "In Progress";
-      }
-      .st.pos::after {
-        content: "Completed";
-      }
-      .po.pos::after {
-        content: "Present";
-      }
-      .po.neg::after {
-        content: "Missing";
-      }
-      details.n {
-        display: contents;
-      }
-      summary {
-        cursor: pointer;
-        padding: 0;
-        margin: 0;
-        border: 0;
-        list-style: none;
-        display: block;
-      }
-      summary::-webkit-details-marker {
-        display: none;
-      }
-      summary::marker {
-        content: none;
-      }
-      .glyph::before {
-        content: "";
-        display: inline-block;
-        border-top: 0.32rem solid transparent;
-        border-bottom: 0.32rem solid transparent;
-        border-left: 0.46rem solid var(--fg);
-      }
-      details[open] > summary .glyph::before {
-        border-left: 0.32rem solid transparent;
-        border-right: 0.32rem solid transparent;
-        border-top: 0.46rem solid var(--fg);
-        border-bottom: none;
-      }
+        #app {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          height: 100%;
+        }
+        .shell {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+          padding: 0 16px 14px;
+          background: #0a0a0a;
+          min-height: 0;
+        }
+        .pane {
+          flex: 1;
+          overflow: auto;
+          overscroll-behavior: contain;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          transform-origin: top left;
+          will-change: transform;
+          background: #0a0a0a;
+        }
+        ::-webkit-scrollbar {
+          display: none;
+          width: 0;
+          height: 0;
+        }
+        h1.chrome {
+          flex: 0 0 auto;
+          z-index: 4;
+          font-size: 19px;
+          line-height: 1.2;
+          margin: 0;
+          padding: 14px 0 12px;
+          letter-spacing: 0.03em;
+          min-width: 0;
+          max-width: 100%;
+          overflow: hidden;
+          white-space: nowrap;
+          background: #0a0a0a;
+        }
+        .hd {
+          position: sticky;
+          top: 0;
+          z-index: 8;
+          height: 24px;
+          box-shadow: inset 0 -1px 0 #0a0a0a;
+          background: #0a0a0a;
+        }
+        .list, .list ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          background: #0a0a0a;
+        }
+        .list {
+          margin-top: 0;
+        }
+        /* details containers – block to avoid gaps */
+        details.n {
+          display: block;
+          background: #0a0a0a;
+          margin: 0;
+          padding: 0;
+        }
+        details.n > summary {
+          position: sticky;
+          z-index: 1;
+          width: 100%;
+          min-width: 1003px;
+          background: #0a0a0a;
+          list-style: none;
+          cursor: pointer;
+          padding: 0;
+          margin: 0;
+          border: 0;
+          outline: none;
+          /* top will be set by JS */
+        }
+        details.n > summary::-webkit-details-marker {
+          display: none;
+        }
+        details.n > summary::marker {
+          content: none;
+        }
+        details.n[open] > summary {
+          z-index: 6;
+        }
+        details.n[open] details.n[open] > summary {
+          z-index: 5;
+        }
+        details.n[open] details.n[open] details.n[open] > summary {
+          z-index: 4;
+        }
+        details.n[open] details.n[open] details.n[open] details.n[open] > summary {
+          z-index: 3;
+        }
+        h1.chrome .sub {
+          font-size: 16px;
+        }
+        [data-act], [data-i] {
+          cursor: pointer;
+        }
+        .err {
+          color: #c44;
+          padding: 8px;
+          margin-bottom: 10px;
+        }
+        .row {
+          display: grid;
+          grid-template-columns: minmax(352px, 1fr) repeat(5, 128px);
+          min-width: 1003px;
+          align-items: start;
+          padding: 2px 6px;
+          min-height: 24px;
+          box-sizing: border-box;
+          background: #0a0a0a;
+          -webkit-touch-callout: none;
+        }
+        .list .row {
+          min-height: 1.5em;
+          padding-top: 4px;
+          padding-bottom: 4px;
+        }
+        .row > :nth-child(n + 2) {
+          white-space: nowrap;
+          min-width: 0;
+        }
+        .row > * {
+          padding-left: 4px;
+          box-sizing: border-box;
+        }
+        .k { grid-column: 2; }
+        .st { grid-column: 3; }
+        .po { grid-column: 4; }
+        .pr { grid-column: 5; }
+        .dt { grid-column: 6; }
+        .hd, .list {
+          font-size: 15px;
+          font-weight: 600;
+        }
+        .list ul {
+          font-size: 90%;
+          font-weight: 400;
+        }
+        .list ul ul ul ul ul {
+          font-size: 100%;
+        }
+        .list .row.hl {
+          outline: 1px solid #4a4a4a;
+          outline-offset: -1px;
+        }
+        .tb {
+          display: flex;
+          align-items: flex-start;
+          min-width: 0;
+          padding-right: 8px;
+          box-sizing: border-box;
+          white-space: nowrap;
+        }
+        .i1 { padding-left: 14px; }
+        .i2 { padding-left: 29px; }
+        .i3 { padding-left: 43px; }
+        .i4 { padding-left: 58px; }
+        .list .tb > :last-child {
+          flex: 1 1 auto;
+          min-width: 32px;
+          line-height: 1.3333;
+          word-wrap: break-word;
+          white-space: pre-wrap;
+        }
+        @media (max-width: 832px) {
+          .list .tb > :last-child {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+        }
+        .hd [data-act="sort-date"] {
+          display: inline-flex;
+          align-items: center;
+        }
+        .hd .tb {
+          align-items: center;
+        }
+        .sg {
+          display: inline-flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          width: 9px;
+          height: 11px;
+          margin-left: 6px;
+          flex: 0 0 auto;
+        }
+        .sg::before, .sg::after {
+          content: "";
+          display: block;
+          border-left: 3.5px solid transparent;
+          border-right: 3.5px solid transparent;
+        }
+        .sg::before {
+          border-bottom: 3px solid #888;
+          margin-bottom: 1px;
+        }
+        .sg::after {
+          border-top: 3px solid #888;
+        }
+        .sd::before { border-bottom-color: transparent; }
+        .sd::after { border-top-color: #ddd; }
+        .su::before { border-bottom-color: #ddd; }
+        .su::after { border-top-color: transparent; }
+        .gs {
+          flex: 0 0 14px;
+          width: 14px;
+          height: 1.2em;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          line-height: 1;
+        }
+        .pos { color: #4a4; }
+        .neg { color: #c44; }
+        .wip { color: #48c; }
+        .st.neg::after { content: "Not Started"; }
+        .st.wip::after { content: "In Progress"; }
+        .st.pos::after { content: "Completed"; }
+        .po.pos::after { content: "Present"; }
+        .po.neg::after { content: "Missing"; }
+        .glyph::before {
+          content: "";
+          display: inline-block;
+          border-top: 5px solid transparent;
+          border-bottom: 5px solid transparent;
+          border-left: 7px solid #ddd;
+        }
+        details[open] > summary .glyph::before {
+          border-left: 5px solid transparent;
+          border-right: 5px solid transparent;
+          border-top: 7px solid #ddd;
+          border-bottom: none;
+        }
+        li {
+          background: #0a0a0a;
+          margin: 0;
+          padding: 0;
+        }
     </style>
   </head>
   <body>
@@ -333,15 +287,10 @@
       const dec = new TextDecoder();
       const app = document.getElementById("app");
       const root = document.documentElement;
-      let z = 1,
-        z0 = 1,
-        d0 = 0;
-      let holdT = 0,
-        holdEl = null,
-        holdX = 0,
-        holdY = 0,
-        holdOn = false,
-        hlEl = null;
+      let scale = 1, scale0 = 1, d0 = 0;
+      let holdT = 0, holdEl = null, holdX = 0, holdY = 0, holdOn = false, hlEl = null;
+
+      // ---- Highlight helpers (unchanged) ----
       function holdRow(t) {
         if (!t) return null;
         if (t.nodeType !== 1) t = t.parentElement;
@@ -350,24 +299,16 @@
         return r;
       }
       function holdStop() {
-        if (holdT) {
-          clearTimeout(holdT);
-          holdT = 0;
-        }
+        if (holdT) { clearTimeout(holdT); holdT = 0; }
         holdEl = null;
       }
-      let hlSticky = false;
-      let ptrRow = null;
+      let hlSticky = false, ptrRow = null;
       function hlClear() {
         if (hlEl && hlEl.isConnected) hlEl.classList.remove("hl");
-        hlEl = null;
-        hlSticky = false;
+        hlEl = null; hlSticky = false;
       }
       function hlAssign(row, sticky) {
-        if (!row) {
-          hlClear();
-          return;
-        }
+        if (!row) { hlClear(); return; }
         if (hlEl && hlEl.isConnected && hlEl !== row) hlEl.classList.remove("hl");
         row.classList.add("hl");
         hlEl = row;
@@ -382,213 +323,195 @@
         }
         hlAssign(row, true);
       }
-      function stickStack() {
-        const pane = app.querySelector(".pane");
+
+      // ---- Core layout: sticky offsets ----
+      function updateStickyOffsets() {
+        const pane = document.querySelector(".pane");
         if (!pane) return;
-        const leftover = pane.querySelector(".pins");
-        if (leftover) leftover.remove();
-        const oldSeams = pane.querySelectorAll(".seam");
-        let s = 0;
-        while (s < oldSeams.length) {
-          oldSeams[s].remove();
-          s += 1;
-        }
-        const hd = pane.querySelector(".hd");
-        const list = pane.querySelector("ul.list");
+        const hd = document.querySelector(".hd");
+        const list = document.querySelector("ul.list");
         if (!list) return;
-        const dpr = window.devicePixelRatio || 1;
-        function snap(n) {
-          return Math.round(n * dpr) / dpr;
-        }
-        const base = hd ? snap(hd.getBoundingClientRect().height) : 0;
-        function walk(ul, top, z) {
+
+        // Base offset: height of header (24px) in unscaled pixels
+        let base = 24; // fixed pixel, no need to measure
+        // We'll walk the tree and compute cumulative heights in unscaled pixels.
+        // We measure heights directly from getBoundingClientRect and divide by scale.
+        const s = scale;
+
+        function walk(ul, accumulated) {
           if (!ul) return;
-          const kids = ul.children;
-          let i = 0;
-          while (i < kids.length) {
-            const d = kids[i].firstElementChild;
-            if (d && d.tagName === "DETAILS" && d.classList.contains("n")) {
-              const sum = d.firstElementChild;
-              const row = sum && sum.querySelector(".row");
+          const children = ul.children;
+          for (let i = 0; i < children.length; i++) {
+            const li = children[i];
+            const details = li.firstElementChild;
+            if (details && details.tagName === "DETAILS" && details.classList.contains("n")) {
+              const summary = details.firstElementChild;
+              if (!summary || summary.tagName !== "SUMMARY") continue;
+              // Measure the summary's height in unscaled pixels
+              let h = 0;
+              const row = summary.querySelector(".row");
               if (row) {
-                row.style.top = "";
-                row.style.zIndex = "";
+                const rect = row.getBoundingClientRect();
+                h = rect.height / s;
+              } else {
+                const rect = summary.getBoundingClientRect();
+                h = rect.height / s;
               }
-              if (d.open && sum) {
-                const h = snap(sum.getBoundingClientRect().height);
-                sum.style.top = top + "px";
-                sum.style.zIndex = String(z);
-                walk(d.lastElementChild, top + h, z - 1);
-              } else if (sum) {
-                sum.style.top = "";
-                sum.style.zIndex = "";
+              // Round to integer to avoid subpixel
+              h = Math.round(h);
+              // If details is open, set sticky top to accumulated (integer)
+              if (details.open) {
+                const top = Math.round(accumulated);
+                summary.style.top = top + "px";
+                // Recurse into child list with accumulated + h
+                const childUl = details.lastElementChild;
+                if (childUl && childUl.tagName === "UL") {
+                  walk(childUl, accumulated + h);
+                }
+              } else {
+                // Closed: clear sticky, but still recurse to clear children offsets
+                summary.style.top = "";
+                const childUl = details.lastElementChild;
+                if (childUl && childUl.tagName === "UL") {
+                  walk(childUl, accumulated); // keep same accumulated for closed branch
+                }
               }
             }
-            i += 1;
           }
         }
-        walk(list, base, 7);
+        walk(list, base);
       }
-      function zmin() {
-        return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
+
+      // ---- Zoom and scale ----
+      function scaleMin() {
+        return Math.min(1, (app.clientWidth || 1) / (1003 + 2));
       }
-      function setz(n, cx, cy) {
-        const m = zmin();
+      function setScale(n, cx, cy) {
+        const m = scaleMin();
+        let ns = n < m ? m : n > 3 ? 3 : n;
         const dpr = window.devicePixelRatio || 1;
-        let nz = n < m ? m : n > 3 ? 3 : n;
-        nz = Math.round(nz * 8 * dpr) / (8 * dpr);
-        const pane = app.querySelector(".pane");
-        const k = nz / z;
-        let sx = 0,
-          sy = 0,
-          px = 0,
-          py = 0;
-        if (pane && cx != null) {
+        ns = Math.round(ns * 8 * dpr) / (8 * dpr);
+        const pane = document.querySelector(".pane");
+        if (!pane) return;
+        const k = ns / scale;
+        let sx = 0, sy = 0, px = 0, py = 0;
+        if (cx != null) {
           const r = pane.getBoundingClientRect();
           sx = pane.scrollLeft;
           sy = pane.scrollTop;
           px = cx - r.left;
           py = cy - r.top;
         }
-        z = nz;
-        root.style.setProperty("--z", String(z));
-        if (pane && cx != null && k !== 1) {
+        scale = ns;
+        pane.style.transform = 'scale(' + scale + ')';
+        if (cx != null && k !== 1) {
           const r = pane.getBoundingClientRect();
-          pane.scrollLeft = (sx + px) * k - (cx - r.left);
-          pane.scrollTop = (sy + py) * k - (cy - r.top);
+          pane.scrollLeft = Math.round((sx + px) * k - (cx - r.left));
+          pane.scrollTop = Math.round((sy + py) * k - (cy - r.top));
         }
-        stickStack();
+        // Recalc sticky offsets after scale change
+        requestAnimationFrame(updateStickyOffsets);
       }
-      app.addEventListener(
-        "touchstart",
-        (e) => {
-          const n = e.touches.length;
-          if (n === 2) {
-            holdStop();
-            const a = e.touches[0],
-              b = e.touches[1];
-            d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-            z0 = z;
-            return;
-          }
-          if (n !== 1) {
-            holdStop();
-            return;
-          }
-          const row = holdRow(e.target);
-          if (!row) {
-            holdStop();
-            return;
-          }
-          holdOn = false;
-          holdEl = row;
-          holdX = e.touches[0].clientX;
-          holdY = e.touches[0].clientY;
-          holdT = setTimeout(() => {
-            holdT = 0;
-            if (!holdEl) return;
-            holdOn = true;
-            hlHold(holdEl);
-          }, 400);
-        },
-        { passive: true }
-      );
-      app.addEventListener(
-        "touchmove",
-        (e) => {
-          if (e.touches.length !== 2 || d0 < 8) return;
-          e.preventDefault();
-          const a = e.touches[0],
-            b = e.touches[1];
-          const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-          setz(
-            z0 * (d / d0),
-            (a.clientX + b.clientX) / 2,
-            (a.clientY + b.clientY) / 2
-          );
-        },
-        { passive: false }
-      );
-      app.addEventListener(
-        "wheel",
-        (e) => {
-          if (!e.ctrlKey) return;
-          e.preventDefault();
-          setz(z * (e.deltaY > 0 ? 0.92 : 1.09), e.clientX, e.clientY);
-        },
-        { passive: false }
-      );
-      app.addEventListener(
-        "touchmove",
-        (e) => {
-          if (!holdT || e.touches.length !== 1) return;
-          const t = e.touches[0];
-          const dx = t.clientX - holdX;
-          const dy = t.clientY - holdY;
-          if (dx * dx + dy * dy > 64) holdStop();
-        },
-        { passive: true }
-      );
-      app.addEventListener(
-        "touchend",
-        (e) => {
-          if (holdOn) {
-            e.preventDefault();
-            holdOn = false;
-          }
+
+      // ---- Event listeners ----
+      app.addEventListener('touchstart', (e) => {
+        const n = e.touches.length;
+        if (n === 2) {
           holdStop();
-        },
-        { passive: false }
-      );
-      app.addEventListener(
-        "touchcancel",
-        () => {
-          holdStop();
-          holdOn = false;
-        },
-        { passive: true }
-      );
-      app.addEventListener("contextmenu", (e) => {
-        if (holdOn || holdT) e.preventDefault();
-      });
-      app.addEventListener(
-        "toggle",
-        (e) => {
-          if (e.target.classList && e.target.classList.contains("n")) stickStack();
-        },
-        true
-      );
-      app.addEventListener("pointerover", (e) => {
-        if (e.pointerType === "touch") return;
+          const a = e.touches[0], b = e.touches[1];
+          d0 = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+          scale0 = scale;
+          return;
+        }
+        if (n !== 1) { holdStop(); return; }
+        const row = holdRow(e.target);
+        if (!row) { holdStop(); return; }
+        holdOn = false;
+        holdEl = row;
+        holdX = e.touches[0].clientX;
+        holdY = e.touches[0].clientY;
+        holdT = setTimeout(() => {
+          holdT = 0;
+          if (!holdEl) return;
+          holdOn = true;
+          hlHold(holdEl);
+        }, 400);
+      }, { passive: true });
+
+      app.addEventListener('touchmove', (e) => {
+        if (e.touches.length !== 2 || d0 < 8) return;
+        e.preventDefault();
+        const a = e.touches[0], b = e.touches[1];
+        const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+        setScale(scale0 * (d / d0), (a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2);
+      }, { passive: false });
+
+      app.addEventListener('wheel', (e) => {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        setScale(scale * (e.deltaY > 0 ? 0.92 : 1.09), e.clientX, e.clientY);
+      }, { passive: false });
+
+      app.addEventListener('touchmove', (e) => {
+        if (!holdT || e.touches.length !== 1) return;
+        const t = e.touches[0];
+        const dx = t.clientX - holdX, dy = t.clientY - holdY;
+        if (dx*dx + dy*dy > 64) holdStop();
+      }, { passive: true });
+
+      app.addEventListener('touchend', (e) => {
+        if (holdOn) { e.preventDefault(); holdOn = false; }
+        holdStop();
+      }, { passive: false });
+
+      app.addEventListener('touchcancel', () => { holdStop(); holdOn = false; }, { passive: true });
+      app.addEventListener('contextmenu', (e) => { if (holdOn || holdT) e.preventDefault(); });
+
+      // Toggle events – recalc after layout changes
+      app.addEventListener('toggle', (e) => {
+        if (e.target.classList && e.target.classList.contains("n")) {
+          requestAnimationFrame(updateStickyOffsets);
+        }
+      }, true);
+
+      // Scroll events – recalc sticky offsets (debounced)
+      let scrollRAF = null;
+      app.addEventListener('scroll', () => {
+        if (scrollRAF) cancelAnimationFrame(scrollRAF);
+        scrollRAF = requestAnimationFrame(() => {
+          scrollRAF = null;
+          updateStickyOffsets();
+        });
+      }, { passive: true });
+
+      // Pointer events for highlight
+      app.addEventListener('pointerover', (e) => {
+        if (e.pointerType === 'touch') return;
         ptrRow = holdRow(e.target);
         if (!ptrRow) return;
         if (hlSticky && hlEl === ptrRow) return;
         hlAssign(ptrRow, false);
       });
-      app.addEventListener("pointerout", (e) => {
-        if (e.pointerType === "touch") return;
+      app.addEventListener('pointerout', (e) => {
+        if (e.pointerType === 'touch') return;
         const next = holdRow(e.relatedTarget);
         if (holdRow(e.target) !== next) ptrRow = next;
         if (!hlSticky && !ptrRow) hlClear();
       });
+
+      // ---- Wasm glue ----
       function showErr(msg) {
-        app.innerHTML =
-          '<div class="shell"><h1 class="chrome"><span data-act="home">Lynnst</span></h1>' +
-          '<div class="pane"><div class="err">Error: ' +
-          msg +
-          "</div></div></div>";
+        app.innerHTML = '<div class="shell"><h1 class="chrome"><span data-act="home">Lynnst</span></h1>' +
+          '<div class="pane"><div class="err">Error: ' + msg + '</div></div></div>';
       }
       try {
         const wr = await fetch(new URL("lynnst.wasm", document.baseURI));
         if (!wr.ok) throw new Error("wasm missing (lynnst.wasm next to index.html)");
         const buf = await wr.arrayBuffer();
-        let inst;
-        let ac;
+        let inst, ac;
         const imports = {
           env: {
-            host_cancel: () => {
-              if (ac) ac.abort();
-            },
+            host_cancel: () => { if (ac) ac.abort(); },
             host_fetch: (urlPtr, urlLen, tag, gen) => {
               if (ac) ac.abort();
               ac = new AbortController();
@@ -596,37 +519,26 @@
               const mem = new Uint8Array(inst.exports.memory.buffer);
               const url = dec.decode(mem.subarray(urlPtr, urlPtr + urlLen));
               fetch(url, { signal })
-                .then((r) => {
-                  if (!r.ok) {
-                    inst.exports.on_http(r.status, gen);
-                    return;
-                  }
-                  return r.arrayBuffer();
-                })
-                .then((ab) => {
+                .then(r => { if (!r.ok) { inst.exports.on_http(r.status, gen); return; } return r.arrayBuffer(); })
+                .then(ab => {
                   if (ab === undefined) return;
                   const n = ab.byteLength;
                   const p = inst.exports.alloc_buf(n);
-                  if (p === 0) {
-                    inst.exports.on_oom(gen);
-                    return;
-                  }
+                  if (p === 0) { inst.exports.on_oom(gen); return; }
                   const mem2 = new Uint8Array(inst.exports.memory.buffer);
                   mem2.set(new Uint8Array(ab), p);
                   inst.exports.on_bytes(p, n, tag, gen);
                 })
-                .catch((e) => {
-                  if (e && e.name === "AbortError") return;
-                  inst.exports.on_net(gen);
-                });
+                .catch(e => { if (e && e.name === "AbortError") return; inst.exports.on_net(gen); });
             },
             host_set_html: (ptr, len) => {
               const mem = new Uint8Array(inst.exports.memory.buffer);
               app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
-              stickStack();
+              // After setting HTML, recalc sticky offsets
+              requestAnimationFrame(updateStickyOffsets);
             },
             host_sort_apply: (ptr, n, titleMark, dateMark) => {
-              const list = app.querySelector("ul.list");
+              const list = document.querySelector("ul.list");
               if (list && n && n === list.children.length) {
                 const mem = new Uint32Array(inst.exports.memory.buffer, ptr, n);
                 const byOrig = new Array(n);
@@ -641,16 +553,12 @@
                 }
                 list.appendChild(frag);
               }
-              const t = app.querySelector("[data-act=sort-title] .sg");
-              const d = app.querySelector("[data-act=sort-date] .sg");
-              if (t) {
-                t.classList.toggle("sd", titleMark === 1);
-                t.classList.toggle("su", titleMark === 2);
-              }
-              if (d) {
-                d.classList.toggle("sd", dateMark === 1);
-                d.classList.toggle("su", dateMark === 2);
-              }
+              const t = document.querySelector("[data-act=sort-title] .sg");
+              const d = document.querySelector("[data-act=sort-date] .sg");
+              if (t) { t.classList.toggle("sd", titleMark === 1); t.classList.toggle("su", titleMark === 2); }
+              if (d) { d.classList.toggle("sd", dateMark === 1); d.classList.toggle("su", dateMark === 2); }
+              // Recalc after reorder
+              requestAnimationFrame(updateStickyOffsets);
             },
           },
         };
