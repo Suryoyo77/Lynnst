@@ -10,12 +10,12 @@
     <link data-trunk rel="copy-file" href="../target/wasm32-unknown-unknown/release/lynnst.wasm" />
     <link data-trunk rel="copy-dir" href="../catalog" />
     <style>
-      html {
-        --z: 1;
-        --bg: #0a0a0a;
-        --fg: #ddd;
-        font-size: calc(16px * var(--z));
-      }
+    html {
+      --z: 1;
+      --bg: #0a0a0a;
+      --fg: #ddd;
+      font-size: calc(16px * var(--z));
+    }
       html,
       body,
       #app {
@@ -86,8 +86,8 @@
       details.n > summary {
         position: relative;
         z-index: 1;
-        width: max-content;
-        min-width: 100%;
+        width: 100%;
+        min-width: 62.7rem;
         background: var(--bg);
       }
       details.n[open] > summary {
@@ -166,7 +166,7 @@
       }
       .hd,
       .list {
-        font-size: 0.92rem;
+        font-size: 0.9375rem;
         font-weight: 600;
       }
       .list ul {
@@ -203,7 +203,7 @@
       .list .tb > :last-child {
         flex: 1 1 auto;
         min-width: 2rem;
-        line-height: 1.35;
+        line-height: 1.3333;
         word-wrap: break-word;
         white-space: pre-wrap;
       }
@@ -387,10 +387,20 @@
         if (!pane) return;
         const leftover = pane.querySelector(".pins");
         if (leftover) leftover.remove();
+        const oldSeams = pane.querySelectorAll(".seam");
+        let s = 0;
+        while (s < oldSeams.length) {
+          oldSeams[s].remove();
+          s += 1;
+        }
         const hd = pane.querySelector(".hd");
         const list = pane.querySelector("ul.list");
         if (!list) return;
-        const base = hd ? hd.offsetHeight : 0;
+        const dpr = window.devicePixelRatio || 1;
+        function snap(n) {
+          return Math.round(n * dpr) / dpr;
+        }
+        const base = hd ? snap(hd.getBoundingClientRect().height) : 0;
         function walk(ul, top, z) {
           if (!ul) return;
           const kids = ul.children;
@@ -399,17 +409,15 @@
             const d = kids[i].firstElementChild;
             if (d && d.tagName === "DETAILS" && d.classList.contains("n")) {
               const sum = d.firstElementChild;
-              if (d.open) {
-                const row = sum && sum.querySelector(".row");
-                const h = row
-                  ? row.getBoundingClientRect().height
-                  : sum
-                    ? sum.getBoundingClientRect().height
-                    : 0;
-                if (sum) {
-                  sum.style.top = top + "px";
-                  sum.style.zIndex = String(z);
-                }
+              const row = sum && sum.querySelector(".row");
+              if (row) {
+                row.style.top = "";
+                row.style.zIndex = "";
+              }
+              if (d.open && sum) {
+                const h = snap(sum.getBoundingClientRect().height);
+                sum.style.top = top + "px";
+                sum.style.zIndex = String(z);
                 walk(d.lastElementChild, top + h, z - 1);
               } else if (sum) {
                 sum.style.top = "";
@@ -426,7 +434,9 @@
       }
       function setz(n, cx, cy) {
         const m = zmin();
-        const nz = n < m ? m : n > 3 ? 3 : n;
+        const dpr = window.devicePixelRatio || 1;
+        let nz = n < m ? m : n > 3 ? 3 : n;
+        nz = Math.round(nz * 8 * dpr) / (8 * dpr);
         const pane = app.querySelector(".pane");
         const k = nz / z;
         let sx = 0,
