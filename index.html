@@ -36,7 +36,9 @@
       .shell,
       .pane,
       h1.chrome,
-      .hd {
+      .hd,
+      details.n,
+      details.n > summary {
         background: var(--bg);
       }
       .shell {
@@ -56,6 +58,17 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         -ms-overflow-style: none;
+      }
+      .pane::before {
+        content: "";
+        display: block;
+        position: sticky;
+        top: 1.5rem;
+        height: var(--sh, 0);
+        margin-bottom: calc(-1 * var(--sh, 0));
+        background: var(--bg);
+        z-index: 2;
+        pointer-events: none;
       }
       ::-webkit-scrollbar {
         display: none;
@@ -83,14 +96,14 @@
       }
       details.n > summary {
         position: relative;
-        z-index: 0;
+        z-index: 1;
         width: max-content;
         min-width: 100%;
       }
       details.n[open] > summary {
         position: sticky;
-        top: var(--st, calc(1.5rem - 2px));
-        z-index: var(--z, 2);
+        top: var(--st, 1.5rem);
+        z-index: var(--z, 20);
         background: var(--bg);
       }
       h1.chrome .sub {
@@ -111,9 +124,6 @@
         padding: 0;
         margin: 0;
       }
-      .list {
-        margin-top: 1px;
-      }
       .row {
         display: grid;
         grid-template-columns: minmax(22rem, 1fr) repeat(5, 8rem);
@@ -122,6 +132,7 @@
         padding: 0.125rem 0.35rem;
         min-height: 1.5rem;
         box-sizing: border-box;
+        background: var(--bg);
         -webkit-touch-callout: none;
       }
       .list .row {
@@ -161,8 +172,7 @@
         font-size: 100%;
       }
       .list .row.hl {
-        outline: 1px solid #4a4a4a;
-        outline-offset: -1px;
+        box-shadow: inset 0 0 0 1px #4a4a4a;
       }
       .tb {
         display: flex;
@@ -362,37 +372,49 @@
         }
         hlAssign(row, true);
       }
-      function syncSticky() {
+      let layoutRaf = 0;
+      function syncLayout() {
+        if (layoutRaf) return;
+        layoutRaf = requestAnimationFrame(applyLayout);
+      }
+      function applyLayout() {
+        layoutRaf = 0;
         const pane = app.querySelector(".pane");
         if (!pane) return;
+        const pr = pane.getBoundingClientRect();
         const hd = pane.querySelector(".hd");
-        const base = hd ? hd.getBoundingClientRect().height : 0;
-        const h = new Map();
+        const hd_h = hd ? hd.getBoundingClientRect().height : 0;
+        const hs = new Map();
         for (const d of pane.querySelectorAll("details.n[open]")) {
           const a = d.firstElementChild;
-          h.set(
+          hs.set(
             d,
-            a && a.tagName === "SUMMARY"
-              ? a.getBoundingClientRect().height
-              : 0
+            a && a.tagName === "SUMMARY" ? a.getBoundingClientRect().height : 0
           );
         }
+        let sh = 0;
         for (const s of pane.querySelectorAll("details.n[open] > summary")) {
-          let top = base - 2;
+          let top = hd_h;
           let depth = 0;
           let p = s.parentElement ? s.parentElement.parentElement : null;
           while (p && p !== pane) {
             if (p.tagName === "DETAILS") {
-              const v = h.get(p);
-              if (v) top += v - 2;
+              const v = hs.get(p);
+              if (v) top += v;
               depth += 1;
             }
             p = p.parentElement;
           }
-          const z = 40 - depth;
           s.style.setProperty("--st", top + "px");
-          s.style.setProperty("--z", String(z > 1 ? z : 1));
+          s.style.setProperty("--z", String(20 - depth));
+          const r = s.getBoundingClientRect();
+          const band = r.top - pr.top - hd_h;
+          if (band >= -1 && band <= sh + 1) {
+            const b = band + r.height;
+            if (b > sh) sh = b;
+          }
         }
+        pane.style.setProperty("--sh", sh > 0 ? sh + "px" : "0");
       }
       function zmin() {
         return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
@@ -420,7 +442,7 @@
           pane.scrollLeft = (sx + px) * k - (cx - r.left);
           pane.scrollTop = (sy + py) * k - (cy - r.top);
         }
-        syncSticky();
+        syncLayout();
       }
       app.addEventListener(
         "touchstart",
@@ -527,7 +549,8 @@
         if (holdRow(e.target) !== next) ptrRow = next;
         if (!hlSticky && !ptrRow) hlClear();
       });
-      app.addEventListener("toggle", syncSticky, true);
+      app.addEventListener("scroll", syncLayout, true);
+      app.addEventListener("toggle", syncLayout, true);
       function showErr(msg) {
         app.innerHTML =
           '<div class="shell"><h1 class="chrome"><span data-act="home">Lynnst</span></h1>' +
@@ -580,7 +603,7 @@
             host_set_html: (ptr, len) => {
               const mem = new Uint8Array(inst.exports.memory.buffer);
               app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
-              syncSticky();
+              applyLayout();
             },
             host_sort_apply: (ptr, n, titleMark, dateMark) => {
               const list = app.querySelector("ul.list");
@@ -625,6 +648,7 @@
           if (t) inst.exports.click_open(Number(t.getAttribute("data-i")));
         });
         inst.exports.start();
+        applyLayout();
       } catch (e) {
         showErr(String(e && e.message ? e.message : e));
       }
