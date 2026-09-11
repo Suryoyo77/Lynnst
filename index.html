@@ -201,6 +201,11 @@
         word-wrap: break-word;
         white-space: pre-wrap;
       }
+      @media (hover: none) and (pointer: coarse) {
+        .list .tb > :last-child {
+          white-space: normal;
+        }
+      }
       .hd [data-act="sort-date"] {
         display: inline-flex;
         align-items: center;
