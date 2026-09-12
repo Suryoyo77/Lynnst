@@ -63,7 +63,7 @@
         content: "";
         display: block;
         position: sticky;
-        top: 1.5rem;
+        top: 0;
         height: var(--sh, 0);
         margin-bottom: calc(-1 * var(--sh, 0));
         background: var(--bg);
@@ -418,7 +418,7 @@
             if (b > sh) sh = b;
           }
         }
-        pane.style.setProperty("--sh", sh > 0 ? sh + "px" : "0");
+        pane.style.setProperty("--sh", hd_h + sh + "px");
       }
       function zmin() {
         return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
