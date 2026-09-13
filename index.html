@@ -373,40 +373,54 @@
         hlAssign(row, true);
       }
       let layoutRaf = 0;
+      let stickyDirty = true;
+      let stuckList = [];
+      let lastSh = "";
       function syncLayout() {
         if (layoutRaf) return;
         layoutRaf = requestAnimationFrame(applyLayout);
+      }
+      function dirtyLayout() {
+        stickyDirty = true;
+        syncLayout();
       }
       function applyLayout() {
         layoutRaf = 0;
         const pane = app.querySelector(".pane");
         if (!pane) return;
-        const pr = pane.getBoundingClientRect();
         const hd = pane.querySelector(".hd");
         const hd_h = hd ? hd.getBoundingClientRect().height : 0;
-        const hs = new Map();
-        for (const d of pane.querySelectorAll("details.n[open]")) {
-          const a = d.firstElementChild;
-          hs.set(
-            d,
-            a && a.tagName === "SUMMARY" ? a.getBoundingClientRect().height : 0
-          );
-        }
-        let sh = 0;
-        for (const s of pane.querySelectorAll("details.n[open] > summary")) {
-          let top = hd_h;
-          let depth = 0;
-          let p = s.parentElement ? s.parentElement.parentElement : null;
-          while (p && p !== pane) {
-            if (p.tagName === "DETAILS") {
-              const v = hs.get(p);
-              if (v) top += v;
-              depth += 1;
-            }
-            p = p.parentElement;
+        if (stickyDirty) {
+          stickyDirty = false;
+          const hs = new Map();
+          for (const d of pane.querySelectorAll("details.n[open]")) {
+            const a = d.firstElementChild;
+            hs.set(
+              d,
+              a && a.tagName === "SUMMARY" ? a.getBoundingClientRect().height : 0
+            );
           }
-          s.style.setProperty("--st", top + "px");
-          s.style.setProperty("--z", String(20 - depth));
+          stuckList = [];
+          for (const s of pane.querySelectorAll("details.n[open] > summary")) {
+            let top = hd_h;
+            let depth = 0;
+            let p = s.parentElement ? s.parentElement.parentElement : null;
+            while (p && p !== pane) {
+              if (p.tagName === "DETAILS") {
+                const v = hs.get(p);
+                if (v) top += v;
+                depth += 1;
+              }
+              p = p.parentElement;
+            }
+            s.style.setProperty("--st", top + "px");
+            s.style.setProperty("--z", String(20 - depth));
+            stuckList.push(s);
+          }
+        }
+        const pr = pane.getBoundingClientRect();
+        let sh = 0;
+        for (const s of stuckList) {
           const r = s.getBoundingClientRect();
           const band = r.top - pr.top - hd_h;
           if (band >= -1 && band <= sh + 1) {
@@ -414,8 +428,13 @@
             if (b > sh) sh = b;
           }
         }
-        pane.style.setProperty("--sh", hd_h + sh + "px");
+        const shPx = hd_h + sh + "px";
+        if (shPx !== lastSh) {
+          pane.style.setProperty("--sh", shPx);
+          lastSh = shPx;
+        }
       }
+      window.addEventListener("resize", dirtyLayout);
       function zmin() {
         return Math.min(1, (app.clientWidth || 1) / (64.7 * 16 + 2));
       }
@@ -442,7 +461,7 @@
           pane.scrollLeft = (sx + px) * k - (cx - r.left);
           pane.scrollTop = (sy + py) * k - (cy - r.top);
         }
-        syncLayout();
+        dirtyLayout();
       }
       app.addEventListener(
         "touchstart",
@@ -579,7 +598,7 @@
               if (dy !== 0) pane.scrollTop += dy;
             }
           }
-          syncLayout();
+          dirtyLayout();
         },
         true
       );
@@ -635,6 +654,8 @@
             host_set_html: (ptr, len) => {
               const mem = new Uint8Array(inst.exports.memory.buffer);
               app.innerHTML = dec.decode(mem.subarray(ptr, ptr + len));
+              stickyDirty = true;
+              lastSh = "";
               applyLayout();
             },
             host_sort_apply: (ptr, n, titleMark, dateMark) => {
