@@ -500,16 +500,25 @@
       app.addEventListener(
         "touchmove",
         (e) => {
-          if (e.touches.length !== 2 || d0 < 8) return;
-          e.preventDefault();
-          const a = e.touches[0],
-            b = e.touches[1];
-          const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-          setz(
-            z0 * (d / d0),
-            (a.clientX + b.clientX) / 2,
-            (a.clientY + b.clientY) / 2
-          );
+          const n = e.touches.length;
+          if (n === 2) {
+            if (d0 < 8) return;
+            e.preventDefault();
+            const a = e.touches[0],
+              b = e.touches[1];
+            const d = Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+            setz(
+              z0 * (d / d0),
+              (a.clientX + b.clientX) / 2,
+              (a.clientY + b.clientY) / 2
+            );
+            return;
+          }
+          if (!holdT || n !== 1) return;
+          const t = e.touches[0];
+          const dx = t.clientX - holdX;
+          const dy = t.clientY - holdY;
+          if (dx * dx + dy * dy > 64) holdStop();
         },
         { passive: false }
       );
@@ -521,17 +530,6 @@
           setz(z * (e.deltaY > 0 ? 0.92 : 1.09), e.clientX, e.clientY);
         },
         { passive: false }
-      );
-      app.addEventListener(
-        "touchmove",
-        (e) => {
-          if (!holdT || e.touches.length !== 1) return;
-          const t = e.touches[0];
-          const dx = t.clientX - holdX;
-          const dy = t.clientY - holdY;
-          if (dx * dx + dy * dy > 64) holdStop();
-        },
-        { passive: true }
       );
       app.addEventListener(
         "touchend",
