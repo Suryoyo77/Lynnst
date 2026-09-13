@@ -58,6 +58,7 @@
         -webkit-overflow-scrolling: touch;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        overflow-anchor: none;
       }
       .pane::before {
         content: "";
@@ -199,11 +200,6 @@
         line-height: 1.35;
         word-wrap: break-word;
         white-space: pre-wrap;
-      }
-      @media (hover: none) and (pointer: coarse) {
-        details.n > summary .tb > :last-child {
-          white-space: normal;
-        }
       }
       .hd [data-act="sort-date"] {
         display: inline-flex;
@@ -554,7 +550,39 @@
         if (!hlSticky && !ptrRow) hlClear();
       });
       app.addEventListener("scroll", syncLayout, true);
-      app.addEventListener("toggle", syncLayout, true);
+      let togglePin = null;
+      app.addEventListener(
+        "click",
+        (e) => {
+          const s = e.target.closest("summary");
+          if (!s) return;
+          const d = s.parentElement;
+          if (d && d.tagName === "DETAILS" && d.classList.contains("n")) {
+            // Pre-default-action Y; close unsticks summary from --st.
+            togglePin = { d, y: s.getBoundingClientRect().top };
+          }
+        },
+        true
+      );
+      app.addEventListener(
+        "toggle",
+        (e) => {
+          const d = e.target;
+          const p = togglePin;
+          togglePin = null;
+          if (p && p.d === d && !d.hasAttribute("open")) {
+            const s = d.firstElementChild;
+            const pane = d.closest(".pane");
+            if (s && pane) {
+              // Re-pin to captured Y; counter unsticking displacement.
+              const dy = s.getBoundingClientRect().top - p.y;
+              if (dy !== 0) pane.scrollTop += dy;
+            }
+          }
+          syncLayout();
+        },
+        true
+      );
       function showErr(msg) {
         app.innerHTML =
           '<div class="shell"><h1 class="chrome"><span data-act="home">Lynnst</span></h1>' +
