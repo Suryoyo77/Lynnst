@@ -7,8 +7,8 @@
     <title>Lynnst</title>
     <link rel="preload" href="lynnst.wasm" as="fetch" type="application/wasm" crossorigin />
     <link rel="preload" href="catalog/index.bin" as="fetch" crossorigin />
-    
-    
+    <link data-trunk rel="copy-file" href="../target/wasm32-unknown-unknown/release/lynnst.wasm" />
+    <link data-trunk rel="copy-dir" href="../catalog" />
     <style>
       html {
         --z: 1;
@@ -473,12 +473,26 @@
           sy = 0,
           px = 0,
           py = 0;
+        let anchor = null,
+          fx = 0,
+          fy = 0;
         if (pane && cx != null) {
           const r = pane.getBoundingClientRect();
           sx = pane.scrollLeft;
           sy = pane.scrollTop;
           px = cx - r.left;
           py = cy - r.top;
+          // Cursor-over row: exact post-zoom anchor against `content-visibility` placeholder drift.
+          const el = document.elementFromPoint(cx, cy);
+          const row = el && pane.contains(el) ? el.closest(".row") : null;
+          if (row && !row.classList.contains("hd")) {
+            const rr = row.getBoundingClientRect();
+            if (rr.width > 0 && rr.height > 0) {
+              anchor = row;
+              fx = (cx - rr.left) / rr.width;
+              fy = (cy - rr.top) / rr.height;
+            }
+          }
         }
         z = nz;
         root.style.setProperty("--z", String(z));
@@ -486,6 +500,11 @@
           const r = pane.getBoundingClientRect();
           pane.scrollLeft = (sx + px) * k - (cx - r.left);
           pane.scrollTop = (sy + py) * k - (cy - r.top);
+          if (anchor && anchor.isConnected) {
+            const rr = anchor.getBoundingClientRect();
+            pane.scrollLeft += rr.left + fx * rr.width - cx;
+            pane.scrollTop += rr.top + fy * rr.height - cy;
+          }
         }
         dirtyLayout();
       }
